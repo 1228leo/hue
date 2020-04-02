@@ -25,14 +25,26 @@ import multiprocessing
 import threading
 
 from datetime import datetime, timedelta
-from prometheus_client import Gauge
+from prometheus_client import Gauge, REGISTRY
 
 from useradmin.models import User
 
+from desktop.conf import ENABLE_PROMETHEUS
 from desktop.lib.metrics import global_registry
 
 
 LOG = logging.getLogger(__name__)
+
+if ENABLE_PROMETHEUS.get():
+  django_collectors = set()
+  django_metrics_names = [name for name in REGISTRY._names_to_collectors.keys() if name.startswith('django_')]
+
+  for metric_name in django_metrics_names:
+    collector_obj = REGISTRY._names_to_collectors[metric_name]
+    django_collectors.add(collector_obj)
+
+  for django_collector in django_collectors:
+    REGISTRY.unregister(django_collector)
 
 
 global_registry().gauge_callback(

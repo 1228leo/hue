@@ -166,6 +166,14 @@ def test_public_views():
     response = c.get(url)
     assert_equal(200, response.status_code)
 
+def test_prometheus_view():
+  if not desktop.conf.ENABLE_PROMETHEUS.get():
+    raise SkipTest
+
+  c = Client()
+  response = c.get('/metrics')
+  assert_true(b'django-' not in response.content, response.content)
+
 def test_log_view():
   c = make_logged_in_client()
 
